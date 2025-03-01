@@ -1,6 +1,8 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.GameFonts;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using Lumina.Extensions;
 using static Avarice.Drawing.DrawFunctions;
 using static Avarice.Drawing.Functions;
 using static Avarice.Util;
@@ -191,13 +193,21 @@ internal unsafe class Canvas : Window
 
         if(P.currentProfile.EnablePlayerDot && IsConditionMatching(P.currentProfile.PlayerDotSettings.DisplayCondition))
         {
-            if(Svc.GameGui.WorldToScreen(Svc.ClientState.LocalPlayer.Position, out var pos))
+            var job = Svc.ClientState.LocalPlayer.ClassJob.Value.RowId;
+            var jobIcon = Svc.Texture.GetFromGameIcon(62100 + job).GetWrapOrEmpty();
+            if (Svc.GameGui.WorldToScreen(Svc.ClientState.LocalPlayer.Position, out var pos))
             {
-                ImGui.GetWindowDrawList().AddCircleFilled(
-                new Vector2(pos.X, pos.Y),
-                P.currentProfile.PlayerDotSettings.Thickness,
-                ImGui.ColorConvertFloat4ToU32(TabSplatoon.IsUnsafe() ? P.config.SplatoonPixelCol : P.currentProfile.PlayerDotSettings.Color),
-                100);
+                if (jobIcon != null)
+                {
+                    ImGui.GetWindowDrawList().AddImage(jobIcon.ImGuiHandle, new Vector2(pos.X - jobIcon.Width/2, pos.Y - jobIcon.Height/2), new Vector2(pos.X + jobIcon.Width/2, pos.Y + jobIcon.Height/2));
+                } else
+                {
+                    ImGui.GetWindowDrawList().AddCircleFilled(
+                    new Vector2(pos.X, pos.Y),
+                    P.currentProfile.PlayerDotSettings.Thickness,
+                    ImGui.ColorConvertFloat4ToU32(TabSplatoon.IsUnsafe() ? P.config.SplatoonPixelCol : P.currentProfile.PlayerDotSettings.Color),
+                    100);
+                }
             }
         }
 
@@ -226,13 +236,21 @@ internal unsafe class Canvas : Window
                 if(x is IPlayerCharacter pc && x.Address != Svc.ClientState.LocalPlayer.Address
                   && (!P.currentProfile.PartyDot || !Svc.Party.Any(x => x.Address == x.GameObject?.Address)))
                 {
-                    if(Svc.GameGui.WorldToScreen(x.Position, out var pos))
+                    var job = pc.ClassJob.Value.RowId;
+                    var jobIcon = Svc.Texture.GetFromGameIcon(62100 + job).GetWrapOrEmpty();
+                    if (Svc.GameGui.WorldToScreen(x.Position, out var pos))
                     {
-                        ImGui.GetWindowDrawList().AddCircleFilled(
-                        new Vector2(pos.X, pos.Y),
-                        P.currentProfile.AllDotSettings.Thickness,
-                        ImGui.ColorConvertFloat4ToU32(P.currentProfile.AllDotSettings.Color),
-                        100);
+                        if (jobIcon != null)
+                        {
+                            ImGui.GetWindowDrawList().AddImage(jobIcon.ImGuiHandle, new Vector2(pos.X - jobIcon.Width / 2, pos.Y - jobIcon.Height / 2), new Vector2(pos.X + jobIcon.Width / 2, pos.Y + jobIcon.Height / 2));
+                        } else
+                        {
+                            ImGui.GetWindowDrawList().AddCircleFilled(
+                            new Vector2(pos.X, pos.Y),
+                            P.currentProfile.PlayerDotSettings.Thickness,
+                            ImGui.ColorConvertFloat4ToU32(TabSplatoon.IsUnsafe() ? P.config.SplatoonPixelCol : P.currentProfile.PlayerDotSettings.Color),
+                            100);
+                        }
                     }
                 }
             }
